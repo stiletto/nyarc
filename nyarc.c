@@ -72,7 +72,7 @@ void startstop_step(struct t_step step,char *action) {
 
 void print_progress(int done, int total) {
     printf(" [");
-    for (int i=0;i<total;i++) {
+    for (int i=1;i<=total;i++) {
 	if (i<=done) 
 	    printf("#");
 	else
@@ -93,8 +93,12 @@ void wait_step(int count,int done,int total) {
 
 int main(int argc, char *argv[]) {
     if (argc<3) {
-        printf("Usage: %s <configfile> <start|stop>\n",argv[0]);
+        printf("Usage: %s <configfile> <start|stop> [<runlevel>]\n",argv[0]);
         exit(1);
+    }
+    char runlevel = 'X';
+    if ((argc>=4) && (strlen(argv[3])>=0)) {
+	runlevel = argv[3][0];
     }
     FILE *config = fopen(argv[1],"r");
     if (!config) panic("fopen(CONFIG,\"r\")");
@@ -114,7 +118,15 @@ int main(int argc, char *argv[]) {
         int count = 0;
         char *t = strtok(buf," ");
         while (t) {
-            strncpy(steps[scount].service[count].name,t,32);
+            int onerunlevel = 0;
+            if ( (('0'<=t[0]) && (t[0]<='9')) && (strlen(t)>1)) {
+        	onerunlevel = 1;
+        	if (t[0]!=runlevel) {
+        	    t = strtok(NULL," ");
+        	    continue;
+        	}
+            }
+            strncpy(steps[scount].service[count].name,t+onerunlevel,32);
             steps[scount].service[count].name[31]='\0';
             count++;
             t = strtok(NULL," ");
